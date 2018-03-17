@@ -8,16 +8,23 @@ var __importStar = (this && this.__importStar) || function (mod) {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = __importStar(require("fs"));
-var content;
-var filename = "./example.st";
-var output;
+var inputSpace = "";
+var inputFilename = "./example.st";
+var outputSpace;
+var outputFilename = "./out/output.html";
 var variables = [];
+var remains = [];
+//declare EYE
+var eye = "";
 function Read() {
-    return fs.readFileSync(filename);
+    return fs.readFileSync(inputFilename);
 }
 function variablize(inputEye) {
+    //signal
+    //console.log("variablizing..");
     //initialize variable    
-    var fVariable;
+    var name = "";
+    var text = "";
     //remove "var" and ";"
     inputEye = inputEye.slice(4, -1);
     //remove "space"
@@ -32,7 +39,7 @@ function variablize(inputEye) {
         if (inputEye[i] === "=") {
             //clean "myV =" to "myV"
             shortEye = shortEye.slice(0, -1);
-            fVariable.vName = shortEye.trim();
+            name = shortEye.trim();
             shortEye = "";
             /*test*/
             //console.log(name+".");
@@ -40,7 +47,7 @@ function variablize(inputEye) {
         else if (inputEye[i] === "\"") {
             shortEye = shortEye.trimLeft();
             if (shortEye.length > 1) {
-                fVariable.vText = shortEye.slice(1, -1);
+                text = shortEye.slice(1, -1);
                 /*test*/
                 //console.log(text);
             }
@@ -51,26 +58,87 @@ function variablize(inputEye) {
         }
     }
     //push slackVariable to variables;
-    return fVariable;
+    //delete eye after finish
+    eye = "";
+    variables.push({ vName: name, vText: text });
 }
-function Lex() {
-    //declare EYE
-    var eye = "";
-    //loop file characters
-    for (var i = 0; i < content.length; i++) {
-        eye = eye + content[i];
-        //find variables
-        if (eye.substring(0, 3) === "var" && eye.substring(eye.length - 1) === ";") {
-            //delete eye after finish
-            eye = "";
+function tagilize(inputEye) {
+    inputEye = inputEye.trimLeft();
+    var tagName = "";
+    var tagContent = "";
+    var tagContentStartPos = 0;
+    //get its content
+    for (var j = 0; j < inputEye.length; j++) {
+        //check if there is atr in tag.
+        //first tag"content"{} is presented to class.
+        //ex div(id="element1",color="black"){}.
+        //if { detected => assign the tag name to remain.
+        //in case use ()
+        if (inputEye[j] === "(") {
+            //start get tag's name
+            tagName = inputEye.substring(0, j);
+            console.log('tagging:' + tagName);
+            tagContentStartPos = j + 1;
         }
-        else {
+        else if (inputEye[j] === ")") {
+            //check error
+            if (tagContentStartPos === 0) {
+                console.log('error! put ( at first place');
+                return;
+            }
+            tagContent = inputEye.substring(tagContentStartPos, j);
         }
+        //
+    }
+    //delete eyes after finish.
+    //input contents to outputSpace.
+    //input the remain.
+    eye = "";
+    if (tagName === "") {
+        console.log("there's something wrong");
+    }
+    else {
+        outputSpace += "<" + tagName + " " + tagContent + ">";
+        remains.push(tagName);
     }
 }
+//replacing after finishing outputSpace.
+function replaceVariables() {
+    for (var k = 0; k < variables.length; k++) {
+        outputSpace.replace("&" + variables[k], variables[k].vText);
+    }
+}
+function closingTags() {
+    //closing tag. ex </html>
+    if (remains.length === 1) {
+        outputSpace += "</" + remains[0] + ">";
+    }
+    else {
+        outputSpace += "</" + remains[-1] + ">";
+    }
+}
+function Lex() {
+    //loop file characters
+    for (var i = 0; i < inputSpace.length; i++) {
+        eye = eye + inputSpace[i];
+        eye = eye.trimLeft();
+        //console.log('<--'+eye+'-->');
+        //find variables
+        if (eye.substring(0, 3) === "var" && inputSpace[i] === ";" /*TMS:ending var*/) {
+            variablize(eye);
+        }
+        //Begin tagging when detect "{".
+        if (inputSpace[i] === "{") {
+            tagilize(eye);
+        }
+        else if (inputSpace[i] == "}") {
+        }
+    }
+    console.log(outputSpace);
+    replaceVariables();
+}
 function onRun() {
-    content = Read().toString();
-    //console.log(content);
+    inputSpace = Read().toString();
     Lex();
 }
 onRun();
