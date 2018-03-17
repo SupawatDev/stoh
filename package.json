@@ -1,0 +1,25 @@
+{
+  "name": "stoh",
+  "version": "0.0.1",
+  "description": "simple text to HTML",
+  "main": "dist/stoh.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/supawattt/stoh.git"
+  },
+  "keywords": [
+    "STOH"
+  ],
+  "author": "Supawat Tamsri",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/supawattt/stoh/issues"
+  },
+  "homepage": "https://github.com/supawattt/stoh#readme",
+  "devDependencies": {
+    "@types/node": "^9.4.7"
+  }
+}
