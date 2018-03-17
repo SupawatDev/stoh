@@ -1,6 +1,6 @@
 {
   "name": "stoh",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "simple text to HTML",
   "main": "dist/stoh.js",
   "scripts": {
