@@ -2,16 +2,20 @@
   "name": "stoh",
   "version": "0.1.0",
   "description": "simple text to HTML",
-  "main": "dist/stoh.js",
+  "main": "./bin/stoh",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin":{
+    "stoh":"./bin/stoh"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/supawattt/stoh.git"
   },
   "keywords": [
-    "STOH"
+    "STOH",
+    "HTML"
   ],
   "author": "Supawat Tamsri",
   "license": "MIT",

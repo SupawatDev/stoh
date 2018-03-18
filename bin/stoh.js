@@ -9,19 +9,26 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = __importStar(require("fs"));
 var inputSpace = "";
-var inputFilename = "./example.st";
-var outputSpace = "";
-var outputFilename = "./out/output.html";
+//default input directory: './fin/'
+var dir = process.cwd() + "\\";
+var inputFileName = process.argv[2] || "index.st";
+var outputFileName = process.argv[3] || "index.html";
 var variables = [];
 var remains = [];
+var remainsInput = [];
+// files location
+var inputLoc = dir + inputFileName;
+var outputLoc = dir + outputFileName;
+var outputFile; //fs.createWriteStream(outputLoc);
 //declare EYE
 var eye = "";
+console.log(process.argv[2], process.argv[3]);
+console.log("-----------------------------");
+console.log('[ STOH | Simple Text to HTML]');
 function Read() {
-    return fs.readFileSync(inputFilename);
+    return fs.readFileSync(inputLoc);
 }
 function variablize() {
-    //signal
-    //console.log("variablizing..");
     //initialize variable    
     var name = "";
     var text = "";
@@ -97,7 +104,7 @@ function tagilize() {
         if (isOpenBracket === false) {
             if (eye[j] === "\"" && isOpenQuote === true) {
                 tagContent = "class =" + eye.slice(tagContentStartPos - 1, -1);
-                console.log(tagContent);
+                //console.log(tagContent);
                 isOpenQuote = false;
                 break;
             }
@@ -126,77 +133,93 @@ function tagilize() {
     }
     else {
         if (tagContent !== "") {
-            outputSpace += '\t'.repeat(remains.length) + "<" + (tagName + " " + tagContent) + ">" + "\n";
+            outputFile.write('\t'.repeat(remains.length) + "<" + (tagName + " " + tagContent) + ">" + "\n");
         }
         else {
-            outputSpace += '\t'.repeat(remains.length) + ("<" + tagName + ">") + "\n";
+            outputFile.write('\t'.repeat(remains.length) + ("<" + tagName + ">") + "\n");
         }
         //tell the remains.
         remains.push(tagName);
     }
 }
-//replacing after finishing outputSpace.
-function replaceVariables() {
-    for (var k = 0; k < variables.length; k++) {
-        outputSpace = outputSpace.toString().replace("&" + variables[k].vName, variables[k].vText);
-    }
-}
 function closingTags() {
     //closing tag. ex </html>;
-    console.log(remains);
+    //console.log(remains);
     //check if ..} is blank 
+    eye = eye.trim();
     if (eye.indexOf(';') === -1 && eye.indexOf('&') === -1) {
-        outputSpace += "\t".repeat(remains.length - 1) + ("</" + remains[remains.length - 1] + ">");
+        outputFile.write("\t".repeat(remains.length - 1) + ("</" + remains[remains.length - 1] + ">"));
         remains = remains.slice(0, -1);
     }
     else {
-        eye = eye.replace(/\s/g, '');
-        if (eye.indexOf('&') !== -1) {
-            outputSpace += "\t".repeat(remains.length) + eye.slice(0, eye.length - 1) + "\n";
+        if (eye[0] == "&" /*variable*/) {
+            var replaceVar = "";
+            var found = false;
+            //eye=eye.trimRight();
+            for (var c = 0; c < variables.length; c++) {
+                //case of &var;text
+                if (variables[c].vName === eye.slice(1, eye.length - 1)) {
+                    replaceVar = variables[c].vText;
+                    found = true;
+                    break;
+                }
+                if (c == variables.length - 1) {
+                    console.log(eye.trim().replace(/(\r\n\t|\n|\r\t)/gm, '') + " has not set the variable.");
+                }
+            }
+            if (replaceVar === "" && found === true) {
+                console.log("don't forget to the the varible content on " + eye.slice(0, eye.length - 1));
+            }
+            outputFile.write("\t".repeat(remains.length) + replaceVar + "\n");
         }
         else {
-            outputSpace += "\t".repeat(remains.length) + eye.slice(1, eye.length - 1) + "\n";
+            outputFile.write("\t".repeat(remains.length) + eye.slice(1, eye.length - 1) + "\n");
         }
-        outputSpace += "\t".repeat(remains.length - 1) + ("</" + remains[remains.length - 1] + ">");
+        outputFile.write("\t".repeat(remains.length - 1) + ("</" + remains[remains.length - 1] + ">"));
         remains = remains.slice(0, -1);
     }
     eye = "";
 }
 function Lex() {
     //loop file characters
+    var outside = true; //prevent in html varibilzie
     for (var i = 0; i < inputSpace.length; i++) {
         eye = eye + inputSpace[i];
         eye = eye.trimLeft();
         //console.log('<--'+eye+'-->');
         //find variables
-        if (eye.substring(0, 3) === "var" && inputSpace[i] === ";" /*TMS:ending var*/) {
-            variablize();
+        if (outside === true && inputSpace[i] === ";" /*TMS:ending var*/) {
+            if (eye.substring(0, 3) === "var") {
+                variablize();
+            }
+            else if (eye.substring(0, 3) === "css" || eye.substring(0, 3) === "js") {
+            }
         }
         //Begin tagging when detect "{".
         if (inputSpace[i] === "{") {
             tagilize();
+            outside = false;
         }
         else if (inputSpace[i] == "}") {
             //console.log(eye);
             closingTags();
-            outputSpace += "\n";
+            outputFile.write("\n");
+            outside = false;
         }
     }
-    replaceVariables();
-}
-function writeToHTML() {
-    var exfile = fs.createWriteStream(outputFilename);
-    exfile.once('open', function (fd) {
-        exfile.write(outputSpace);
-        exfile.end();
-    });
 }
 function onRun() {
+    outputFile = fs.createWriteStream(outputLoc);
     inputSpace = Read().toString();
+    console.time();
     Lex();
-    //console.log(outputSpace);   
-    writeToHTML();
+    console.timeEnd();
+    outputFile.close();
 }
-console.time();
+//Run After comply and Run if File is changed
 onRun();
-console.timeEnd();
+fs.watch(dir, function (eventType, filename) {
+    if (filename == inputFileName && eventType == "change") {
+        onRun();
+    }
+});

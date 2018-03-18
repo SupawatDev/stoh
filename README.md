@@ -2,12 +2,13 @@
 Simple Text to HTML.
 STOH is a simple language that complies to a HTML template.
 ## Get Started
-! - I am not currently working on this yet
-###### for temporary use.
-1. open dist/stoh.js.
-2. edit file output and file input's directory.
-3. create input.stoh, and write the stoh.
-4. run node stoh.js to compile .stoh to .html.
+Now, You are in the very first version of STOH. the CLI hasn't implemented yet.
+You can start compile .st code by using command,
+1. Get in your input directory and create your .st file (Eg, index.st)
+2. run stoh,
+```
+    node dist/stoh.js <file-input-name>.st <file-output-name>.html
+```
 ### How does It look like?
 ##### STOH,
 ```
@@ -23,16 +24,16 @@ html{
 ```
 ##### Complied HTML,
 ```html
-    <html>
-        <head>
-            <title>
-            STOH | Simple Text to HTML
-            </title>
-        </head>
-        <body>
-            <p>
-            Hello World
-            </p>
-        </body>
-    </html>
+<html>
+    <head>
+        <title>
+        STOH | Simple Text to HTML
+        </title>
+    </head>
+    <body>
+        <p>
+        Hello World
+        </p>
+    </body>
+</html>
 ```
