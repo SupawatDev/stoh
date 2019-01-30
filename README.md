@@ -1,6 +1,10 @@
 # STOH
 Simple Text to HTML.
 STOH is a simple language that complies to a HTML template.
+
+# THIS PROJECT IS NO LONGER MAINTAINED.
+Due to the mess of unorganized code, long-time inactivitiy of project, and no reasons of being useful, the author can no longer implement the project and has no choice but to let this project be achieved.
+
 ## Get Started
 Now, You are in the very first version of STOH. the CLI hasn't implemented yet.
 You can start compile .st code by using command,
